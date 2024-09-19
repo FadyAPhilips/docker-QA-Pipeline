@@ -1,0 +1,33 @@
+name: Generate Dockerfile for PR
+
+on:
+  pull_request:
+    branches:
+      - "**" # This triggers on PRs made for any branch
+
+jobs:
+  generate-dockerfile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+
+      - name: Get branch name from the pull request
+        run: echo "BRANCH_NAME=${{ github.head_ref }}" >> $GITHUB_ENV
+
+      - name: Copy and modify Dockerfile template
+        run: |
+          cp dockerfile.template dockerfile.${{ env.BRANCH_NAME }}
+          sed -i 's/BRANCH_NAME_PLACEHOLDER/${{ env.BRANCH_NAME }}/g' dockerfile.${{ env.BRANCH_NAME }}
+
+      - name: Upload Dockerfile artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dockerfile-${{ env.BRANCH_NAME }}
+          path: dockerfile.${{ env.BRANCH_NAME }}
