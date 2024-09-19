@@ -1,0 +1,34 @@
+FROM node:16
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy only package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application files
+COPY . .
+
+# Install Git (if needed for git checkout)
+RUN apt-get update && apt-get install -y git
+
+# Replace this placeholder with the actual branch name during GitHub Actions
+RUN git checkout branch2 || echo "No Git repository found"
+
+# Build the application
+RUN npm run build
+
+# Install serve to run the built app
+RUN npm install -g serve
+
+# Serve the application
+CMD ["serve", "-s", "build"]
+
+# Use environment variable to set the port
+ENV PORT 3300
+
+# Expose the default port (3300 for Docker)
+EXPOSE 3300
